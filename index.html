@@ -160,68 +160,76 @@ document.addEventListener('keydown', function(e) {
   
 <script>
 function countdownTimer() {
-  let countdownDate = localStorage.getItem('countdownDate');
+    let countdownDate = localStorage.getItem('countdownDate');
+    const currentTime = new Date().getTime();
 
-  if (!countdownDate) {
-    const newDate = new Date();
-    newDate.setSeconds(0);
-    countdownDate = newDate.getTime() + (30 * 24 * 60 * 60 * 1000);
-    localStorage.setItem('countdownDate', countdownDate);
-  } else {
-    countdownDate = parseInt(countdownDate, 10);
-  }
-
-  function updateCountdown() {
-    const now = new Date().getTime();
-    const distance = countdownDate - now;
-
-    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-    displayTime('days-wrapper', String(days).padStart(2, '0'));
-    displayTime('hours-wrapper', String(hours).padStart(2, '0'));
-    displayTime('minutes-wrapper', String(minutes).padStart(2, '0'));
-    displayTime('seconds-wrapper', String(seconds).padStart(2, '0'));
-
-    if (distance < 0) {
-      clearInterval(interval);
-      document.getElementById('countdown').innerHTML = "EXPIRED";
-      localStorage.removeItem('countdownDate');
+    if (!countdownDate) {
+        const newDate = new Date();
+        newDate.setSeconds(0);
+        countdownDate = newDate.getTime() + (30 * 24 * 60 * 60 * 1000);
+        localStorage.setItem('countdownDate', countdownDate);
+    } else {
+        countdownDate = parseInt(countdownDate, 10);
     }
 
-    const expiryDate = new Date(countdownDate);
-    const formatted = expiryDate.toLocaleString('en-US', {
-      timeZone: 'America/New_York',
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true
-    });
+    function updateCountdown() {
+        const now = new Date().getTime();
+        const distance = countdownDate - now;
 
-    document.getElementById('expiry-date').textContent = formatted;
-  }
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-  function displayTime(wrapperId, timeStr) {
-    const wrapper = document.getElementById(wrapperId);
-    wrapper.innerHTML = '';
-    for (let char of timeStr) {
-      const div = document.createElement('div');
-      div.className = 'time-number';
-      div.textContent = char;
-      wrapper.appendChild(div);
+        displayTime('days-wrapper', String(days).padStart(2, '0'));
+        displayTime('hours-wrapper', String(hours).padStart(2, '0'));
+        displayTime('minutes-wrapper', String(minutes).padStart(2, '0'));
+        displayTime('seconds-wrapper', String(seconds).padStart(2, '0'));
+
+        if (distance < 0) {
+            clearInterval(interval);
+            document.getElementById('countdown').innerHTML = "EXPIRED";
+            localStorage.removeItem('countdownDate');
+        }
+
+        // Add "PM EST" to the end of the date
+        const expiryDate = new Date(countdownDate);
+        const formattedExpiryDate = expiryDate.toLocaleString('en-US', {
+            timeZone: 'America/New_York',
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+
+        const timeParts = formattedExpiryDate.split(' ');
+        const timeWithEST = `${timeParts.slice(0, -1).join(' ')} ${timeParts[timeParts.length - 1]} EST`;
+
+        document.querySelector('span strong').textContent = timeWithEST;
     }
-  }
 
-  const interval = setInterval(updateCountdown, 1000);
+    function displayTime(elementId, timeString) {
+        const element = document.getElementById(elementId);
+        element.innerHTML = '';
+        for (let char of timeString) {
+            const span = document.createElement('div');
+            span.className = 'time-number';
+            span.innerText = char;
+            element.appendChild(span);
+        }
+    }
+
+    document.querySelectorAll('.time-label')[0].innerText = 'DAYS';
+    document.querySelectorAll('.time-label')[2].innerText = 'MINS';
+
+    const interval = setInterval(updateCountdown, 1000);
 }
 
 function closeBanner() {
-  document.getElementById('countdown-container').style.display = 'none';
+    document.getElementById('countdown-section').style.display = 'none';
 }
 
 countdownTimer();
